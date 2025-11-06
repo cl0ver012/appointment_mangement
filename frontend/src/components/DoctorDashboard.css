@@ -178,8 +178,25 @@
 }
 
 .calendar-slot.empty {
-  background: #fafafa;
-  cursor: default;
+  background: #ffffff;
+  cursor: pointer;
+  position: relative;
+}
+
+.calendar-slot.empty:hover {
+  background: #f9f9f9;
+  border: 1px dashed #ccc;
+}
+
+.slot-empty-hint {
+  font-size: 1.25rem;
+  color: #ccc;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.calendar-slot.empty:hover .slot-empty-hint {
+  opacity: 1;
 }
 
 .calendar-slot.available {
@@ -202,11 +219,16 @@
 
 .calendar-slot.past {
   opacity: 0.4;
-  cursor: not-allowed;
+  cursor: not-allowed !important;
 }
 
 .calendar-slot.past:hover {
-  background: #fafafa;
+  background: #fafafa !important;
+  border: none !important;
+}
+
+.calendar-slot.past .slot-empty-hint {
+  display: none;
 }
 
 .slot-available-text {

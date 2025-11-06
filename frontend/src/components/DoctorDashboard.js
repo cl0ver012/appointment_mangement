@@ -130,6 +130,40 @@ const DoctorDashboard = () => {
     }
   };
 
+  const handleTimeSlotClick = (date, time) => {
+    // Allow clicking anywhere on the calendar to create appointment
+    const existingSlot = slots.find(s => 
+      new Date(s.date).toISOString().split('T')[0] === date.toISOString().split('T')[0] &&
+      s.startTime === time
+    );
+
+    if (existingSlot) {
+      handleSlotClick(existingSlot);
+    } else {
+      // No slot exists - create one and book
+      const endTime = calculateEndTime(time);
+      const tempSlot = {
+        date: date.toISOString(),
+        startTime: time,
+        endTime: endTime,
+        _isTemp: true
+      };
+      setSelectedSlot(tempSlot);
+      setSelectedAppointment(null);
+      setShowBooking(true);
+      setBookingForm({ email: '', note: '' });
+    }
+  };
+
+  const calculateEndTime = (startTime) => {
+    const [hours, minutes] = startTime.split(':');
+    const endMinutes = parseInt(minutes) + 30;
+    if (endMinutes >= 60) {
+      return `${String(parseInt(hours) + 1).padStart(2, '0')}:${String(endMinutes - 60).padStart(2, '0')}`;
+    }
+    return `${hours}:${String(endMinutes).padStart(2, '0')}`;
+  };
+
   const handleCreateSlot = async (e) => {
     e.preventDefault();
     try {
@@ -146,6 +180,16 @@ const DoctorDashboard = () => {
   const handleBookAppointment = async (e) => {
     e.preventDefault();
     try {
+      // If it's a temporary slot (no existing slot), create slot first
+      if (selectedSlot._isTemp) {
+        await slotsAPI.create({
+          date: new Date(selectedSlot.date).toISOString().split('T')[0],
+          startTime: selectedSlot.startTime,
+          endTime: selectedSlot.endTime
+        });
+      }
+
+      // Book appointment
       await appointmentsAPI.create({
         userEmail: bookingForm.email,
         appointmentDate: selectedSlot.date,
@@ -153,7 +197,7 @@ const DoctorDashboard = () => {
         endTime: selectedSlot.endTime,
         note: bookingForm.note
       });
-      toast.success('Appointment booked');
+      toast.success('Appointment booked successfully');
       setShowBooking(false);
       setBookingForm({ email: '', note: '' });
       setSelectedSlot(null);
@@ -298,8 +342,9 @@ const DoctorDashboard = () => {
                 return (
                   <div
                     key={`${dayIdx}-${time}`}
-                    className={`calendar-slot ${slot ? (slot.isBooked ? 'booked' : 'available') : 'empty'} ${past ? 'past' : ''}`}
-                    onClick={() => slot && !past && handleSlotClick(slot)}
+                    className={`calendar-slot ${slot ? (slot.isBooked ? 'booked' : 'available') : 'empty'} ${past ? 'past' : ''} clickable`}
+                    onClick={() => !past && handleTimeSlotClick(date, time)}
+                    title={slot ? (slot.isBooked ? 'Click to view appointment' : 'Click to book') : 'Click to create appointment'}
                   >
                     {slot && slot.isBooked && appointment ? (
                       <div className="slot-booked-content">
@@ -307,7 +352,9 @@ const DoctorDashboard = () => {
                       </div>
                     ) : slot && !slot.isBooked ? (
                       <div className="slot-available-text">Open</div>
-                    ) : null}
+                    ) : (
+                      <div className="slot-empty-hint">+</div>
+                    )}
                   </div>
                 );
               })}
