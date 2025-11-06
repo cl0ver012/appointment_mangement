@@ -1,0 +1,534 @@
+{
+  "info": {
+    "name": "Appointment Management API",
+    "description": "Healthcare appointment management system with voice AI integration support",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Check API Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Check if the API is running and healthy"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Appointments",
+      "item": [
+        {
+          "name": "Get All Appointments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/appointments",
+              "host": ["{{base_url}}"],
+              "path": ["appointments"]
+            },
+            "description": "Retrieve all appointments"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Appointments by Email",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/appointments?email=john.smith@email.com",
+              "host": ["{{base_url}}"],
+              "path": ["appointments"],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "john.smith@email.com",
+                  "description": "Filter by patient email"
+                }
+              ]
+            },
+            "description": "Get appointments for a specific patient"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Appointments by Date",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/appointments?date=2025-11-02",
+              "host": ["{{base_url}}"],
+              "path": ["appointments"],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2025-11-02",
+                  "description": "Filter by date (YYYY-MM-DD)"
+                }
+              ]
+            },
+            "description": "Get appointments for a specific date"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Appointments by Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/appointments?status=scheduled",
+              "host": ["{{base_url}}"],
+              "path": ["appointments"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "scheduled",
+                  "description": "Filter by status (scheduled, completed, cancelled, rescheduled)"
+                }
+              ]
+            },
+            "description": "Get appointments by status"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Single Appointment",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/appointments/:id",
+              "host": ["{{base_url}}"],
+              "path": ["appointments", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "appointment_id_here",
+                  "description": "Appointment ID"
+                }
+              ]
+            },
+            "description": "Get a specific appointment by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Appointment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userEmail\": \"patient@example.com\",\n  \"appointmentDate\": \"2025-11-05\",\n  \"startTime\": \"14:00\",\n  \"endTime\": \"14:30\",\n  \"note\": \"Annual checkup - scheduled by voice AI\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/appointments",
+              "host": ["{{base_url}}"],
+              "path": ["appointments"]
+            },
+            "description": "Create a new appointment. Will automatically create Google Calendar event if configured."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Appointment (Voice AI Example)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userEmail\": \"voice.ai.patient@email.com\",\n  \"appointmentDate\": \"2025-11-06\",\n  \"startTime\": \"10:00\",\n  \"endTime\": \"10:30\",\n  \"note\": \"Flu symptoms. Scheduled via voice AI assistant.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/appointments",
+              "host": ["{{base_url}}"],
+              "path": ["appointments"]
+            },
+            "description": "Example of appointment creation by voice AI agent"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Appointment",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appointmentDate\": \"2025-11-07\",\n  \"startTime\": \"15:00\",\n  \"endTime\": \"15:30\",\n  \"note\": \"Rescheduled by patient\",\n  \"status\": \"rescheduled\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/appointments/:id",
+              "host": ["{{base_url}}"],
+              "path": ["appointments", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "appointment_id_here",
+                  "description": "Appointment ID"
+                }
+              ]
+            },
+            "description": "Update appointment details. Google Calendar event will be updated automatically."
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Appointment",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"cancelled\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/appointments/:id",
+              "host": ["{{base_url}}"],
+              "path": ["appointments", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "appointment_id_here",
+                  "description": "Appointment ID"
+                }
+              ]
+            },
+            "description": "Cancel an appointment. Google Calendar event will be deleted."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Appointment",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/appointments/:id",
+              "host": ["{{base_url}}"],
+              "path": ["appointments", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "appointment_id_here",
+                  "description": "Appointment ID"
+                }
+              ]
+            },
+            "description": "Permanently delete an appointment"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Slots",
+      "item": [
+        {
+          "name": "Get All Slots",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/slots",
+              "host": ["{{base_url}}"],
+              "path": ["slots"]
+            },
+            "description": "Get all available slots"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Available Slots",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/slots?available=true",
+              "host": ["{{base_url}}"],
+              "path": ["slots"],
+              "query": [
+                {
+                  "key": "available",
+                  "value": "true",
+                  "description": "Filter only available (not booked) slots"
+                }
+              ]
+            },
+            "description": "Get only available slots for booking"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Slots by Date",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/slots?date=2025-11-02&available=true",
+              "host": ["{{base_url}}"],
+              "path": ["slots"],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2025-11-02",
+                  "description": "Filter by date (YYYY-MM-DD)"
+                },
+                {
+                  "key": "available",
+                  "value": "true",
+                  "description": "Only show available slots"
+                }
+              ]
+            },
+            "description": "Get available slots for a specific date - useful for voice AI to check availability"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Single Slot",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2025-11-10\",\n  \"startTime\": \"09:00\",\n  \"endTime\": \"09:30\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/slots",
+              "host": ["{{base_url}}"],
+              "path": ["slots"]
+            },
+            "description": "Create a single time slot"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Bulk Slots",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startDate\": \"2025-11-10\",\n  \"endDate\": \"2025-11-15\",\n  \"excludeWeekends\": true,\n  \"timeSlots\": [\n    { \"startTime\": \"09:00\", \"endTime\": \"09:30\" },\n    { \"startTime\": \"09:30\", \"endTime\": \"10:00\" },\n    { \"startTime\": \"10:00\", \"endTime\": \"10:30\" },\n    { \"startTime\": \"10:30\", \"endTime\": \"11:00\" },\n    { \"startTime\": \"14:00\", \"endTime\": \"14:30\" },\n    { \"startTime\": \"14:30\", \"endTime\": \"15:00\" },\n    { \"startTime\": \"15:00\", \"endTime\": \"15:30\" },\n    { \"startTime\": \"15:30\", \"endTime\": \"16:00\" }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/slots/bulk",
+              "host": ["{{base_url}}"],
+              "path": ["slots", "bulk"]
+            },
+            "description": "Create multiple slots across date range"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Slot",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/slots/:id",
+              "host": ["{{base_url}}"],
+              "path": ["slots", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "slot_id_here",
+                  "description": "Slot ID"
+                }
+              ]
+            },
+            "description": "Delete a slot (only if not booked)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Voice AI Examples",
+      "item": [
+        {
+          "name": "1. Check Available Slots for Tomorrow",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/slots?date=2025-11-03&available=true",
+              "host": ["{{base_url}}"],
+              "path": ["slots"],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2025-11-03",
+                  "description": "Tomorrow's date"
+                },
+                {
+                  "key": "available",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "Voice AI: 'What slots are available tomorrow?'"
+          },
+          "response": []
+        },
+        {
+          "name": "2. Book Appointment for Patient",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userEmail\": \"patient@email.com\",\n  \"appointmentDate\": \"2025-11-03\",\n  \"startTime\": \"10:00\",\n  \"endTime\": \"10:30\",\n  \"note\": \"Patient called via voice AI. Reason: Follow-up consultation\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/appointments",
+              "host": ["{{base_url}}"],
+              "path": ["appointments"]
+            },
+            "description": "Voice AI: 'Book me for tomorrow at 10 AM'"
+          },
+          "response": []
+        },
+        {
+          "name": "3. Get Patient Appointments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/appointments?email=patient@email.com&status=scheduled",
+              "host": ["{{base_url}}"],
+              "path": ["appointments"],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "patient@email.com"
+                },
+                {
+                  "key": "status",
+                  "value": "scheduled"
+                }
+              ]
+            },
+            "description": "Voice AI: 'What are my upcoming appointments?'"
+          },
+          "response": []
+        },
+        {
+          "name": "4. Reschedule Appointment",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appointmentDate\": \"2025-11-04\",\n  \"startTime\": \"14:00\",\n  \"endTime\": \"14:30\",\n  \"status\": \"rescheduled\",\n  \"note\": \"Rescheduled via voice AI - patient requested different time\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/appointments/:id",
+              "host": ["{{base_url}}"],
+              "path": ["appointments", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "appointment_id_here"
+                }
+              ]
+            },
+            "description": "Voice AI: 'Can you reschedule my appointment to tomorrow at 2 PM?'"
+          },
+          "response": []
+        },
+        {
+          "name": "5. Cancel Appointment",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"cancelled\",\n  \"note\": \"Cancelled via voice AI - patient no longer available\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/appointments/:id",
+              "host": ["{{base_url}}"],
+              "path": ["appointments", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "appointment_id_here"
+                }
+              ]
+            },
+            "description": "Voice AI: 'I need to cancel my appointment'"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
+
