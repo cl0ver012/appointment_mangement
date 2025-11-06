@@ -91,10 +91,23 @@
 
 /* Week Banner */
 .week-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   padding: 0.75rem 0;
   font-size: 0.875rem;
   color: #666;
   margin-bottom: 1rem;
+}
+
+.current-time {
+  font-size: 0.8rem;
+  color: #999;
+}
+
+.timezone-btn {
+  font-family: monospace;
+  font-weight: 600;
 }
 
 /* Calendar */
@@ -683,6 +696,61 @@
 
 .btn-primary:hover {
   opacity: 0.85;
+}
+
+/* Timezone Settings */
+.timezone-list {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #e5e5e5;
+  margin-top: 0.75rem;
+}
+
+.timezone-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.timezone-option:last-child {
+  border-bottom: none;
+}
+
+.timezone-option:hover {
+  background: #f8f8f8;
+}
+
+.timezone-option.selected {
+  background: #1a1a1a;
+  color: white;
+}
+
+.timezone-option.selected .tz-time {
+  color: #ccc;
+}
+
+.tz-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.tz-time {
+  font-size: 0.8rem;
+  color: #999;
+  font-family: monospace;
+}
+
+.current-selection {
+  margin-top: 1rem;
+  padding: 0.875rem;
+  background: #fafafa;
+  border: 1px solid #e5e5e5;
+  font-size: 0.875rem;
+  color: #666;
 }
 
 /* Responsive */

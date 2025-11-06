@@ -13,6 +13,8 @@ const DoctorDashboard = () => {
   const [showCreateSlot, setShowCreateSlot] = useState(false);
   const [showBooking, setShowBooking] = useState(false);
   const [activeView, setActiveView] = useState('calendar'); // 'calendar' or 'list'
+  const [showTimezoneSettings, setShowTimezoneSettings] = useState(false);
+  const [timezone, setTimezone] = useState(localStorage.getItem('preferredTimezone') || 'America/New_York');
 
   // Form states
   const [slotForm, setSlotForm] = useState({ date: '', startTime: '', endTime: '' });
@@ -23,6 +25,25 @@ const DoctorDashboard = () => {
     excludeWeekends: true,
     times: ['09:00-09:30', '10:00-10:30', '11:00-11:30', '14:00-14:30', '15:00-15:30', '16:00-16:30']
   });
+
+  // Timezone list
+  const timezones = [
+    { value: 'America/New_York', label: 'Eastern Time (ET)' },
+    { value: 'America/Chicago', label: 'Central Time (CT)' },
+    { value: 'America/Denver', label: 'Mountain Time (MT)' },
+    { value: 'America/Los_Angeles', label: 'Pacific Time (PT)' },
+    { value: 'America/Phoenix', label: 'Arizona Time (MST)' },
+    { value: 'America/Anchorage', label: 'Alaska Time (AKT)' },
+    { value: 'Pacific/Honolulu', label: 'Hawaii Time (HST)' },
+    { value: 'Europe/London', label: 'London (GMT/BST)' },
+    { value: 'Europe/Paris', label: 'Paris (CET/CEST)' },
+    { value: 'Asia/Dubai', label: 'Dubai (GST)' },
+    { value: 'Asia/Kolkata', label: 'India (IST)' },
+    { value: 'Asia/Singapore', label: 'Singapore (SGT)' },
+    { value: 'Asia/Tokyo', label: 'Tokyo (JST)' },
+    { value: 'Australia/Sydney', label: 'Sydney (AEDT/AEST)' },
+    { value: 'UTC', label: 'UTC (Coordinated Universal Time)' }
+  ];
 
   useEffect(() => {
     fetchData();
@@ -243,6 +264,31 @@ const DoctorDashboard = () => {
     }
   };
 
+  const handleTimezoneChange = (newTimezone) => {
+    setTimezone(newTimezone);
+    localStorage.setItem('preferredTimezone', newTimezone);
+    toast.success(`Timezone changed to ${timezones.find(t => t.value === newTimezone)?.label}`);
+    setShowTimezoneSettings(false);
+  };
+
+  const getCurrentTime = () => {
+    return new Date().toLocaleTimeString('en-US', { 
+      timeZone: timezone,
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getTimezoneAbbr = () => {
+    const date = new Date();
+    const timeString = date.toLocaleTimeString('en-US', { 
+      timeZone: timezone,
+      timeZoneName: 'short'
+    });
+    const match = timeString.match(/\b([A-Z]{3,5})\b/);
+    return match ? match[0] : timezone.split('/')[1];
+  };
+
   const previousWeek = () => {
     const newDate = new Date(currentWeekStart);
     newDate.setDate(newDate.getDate() - 7);
@@ -308,6 +354,9 @@ const DoctorDashboard = () => {
           <button onClick={nextWeek} className="control-btn">Next Week →</button>
         </div>
         <div className="controls-right">
+          <button onClick={() => setShowTimezoneSettings(true)} className="control-btn timezone-btn" title="Change timezone">
+            {getTimezoneAbbr()}
+          </button>
           <button onClick={() => setShowCreateSlot(true)} className="control-btn">Create Slots</button>
           <button onClick={fetchData} className="control-btn">Refresh</button>
         </div>
@@ -315,8 +364,9 @@ const DoctorDashboard = () => {
 
       {/* Week Info */}
       <div className="week-banner">
-        Week of {currentWeekStart.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} - 
-        {' '}{new Date(currentWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+        <span>Week of {currentWeekStart.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} - 
+        {' '}{new Date(currentWeekStart.getTime() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+        <span className="current-time">Current time: {getCurrentTime()} {getTimezoneAbbr()}</span>
       </div>
 
       {/* Calendar Grid */}
@@ -551,6 +601,45 @@ const DoctorDashboard = () => {
                 <button type="submit" className="btn-primary">Create Slots</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Timezone Settings Modal */}
+      {showTimezoneSettings && (
+        <div className="modal-overlay" onClick={() => setShowTimezoneSettings(false)}>
+          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Timezone Settings</h3>
+              <button onClick={() => setShowTimezoneSettings(false)} className="close-btn">×</button>
+            </div>
+            <div className="modal-form">
+              <div className="field">
+                <label>Select Your Timezone</label>
+                <p className="field-help">All appointment times will be displayed in this timezone</p>
+                <div className="timezone-list">
+                  {timezones.map(tz => (
+                    <div
+                      key={tz.value}
+                      className={`timezone-option ${timezone === tz.value ? 'selected' : ''}`}
+                      onClick={() => handleTimezoneChange(tz.value)}
+                    >
+                      <div className="tz-label">{tz.label}</div>
+                      <div className="tz-time">
+                        {new Date().toLocaleTimeString('en-US', { 
+                          timeZone: tz.value,
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="current-selection">
+                <strong>Current Timezone:</strong> {timezones.find(t => t.value === timezone)?.label}
+              </div>
+            </div>
           </div>
         </div>
       )}
