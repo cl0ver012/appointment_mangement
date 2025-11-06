@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
-import SimpleSlotManager from './components/SimpleSlotManager';
+import CalendlyStyle from './components/CalendlyStyle';
 
 function App() {
   return (
@@ -24,17 +24,9 @@ function App() {
         </div>
       </header>
 
-      <nav className="tab-navigation">
-        <div className="container">
-          <button className="tab-button active">
-            Schedule Overview
-          </button>
-        </div>
-      </nav>
-
       <main className="main-content">
         <div className="container">
-          <SimpleSlotManager />
+          <CalendlyStyle />
         </div>
       </main>
 
