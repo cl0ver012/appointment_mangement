@@ -2,7 +2,7 @@ import React from 'react';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './App.css';
-import CalendlyStyle from './components/CalendlyStyle';
+import DoctorDashboard from './components/DoctorDashboard';
 
 function App() {
   return (
@@ -26,7 +26,7 @@ function App() {
 
       <main className="main-content">
         <div className="container">
-          <CalendlyStyle />
+          <DoctorDashboard />
         </div>
       </main>
 
