@@ -1,0 +1,211 @@
+{
+  "openai_functions": [
+    {
+      "name": "check_availability",
+      "description": "Check available appointment slots for a specific date. Use this when a patient asks what times are available.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "description": "The date to check availability for, in YYYY-MM-DD format (e.g., 2025-11-07)"
+          }
+        },
+        "required": ["date"]
+      },
+      "endpoint": "POST /api/llm/check-availability",
+      "example_request": {
+        "date": "2025-11-07"
+      },
+      "example_response": {
+        "success": true,
+        "date": "2025-11-07",
+        "availableSlots": [
+          {
+            "time": "09:00 - 09:30",
+            "startTime": "09:00",
+            "endTime": "09:30"
+          },
+          {
+            "time": "10:00 - 10:30",
+            "startTime": "10:00",
+            "endTime": "10:30"
+          }
+        ],
+        "count": 12,
+        "message": "Found 12 available slots"
+      }
+    },
+    {
+      "name": "book_appointment",
+      "description": "Book an appointment for a patient. Use this when a patient wants to schedule an appointment. Creates Google Calendar event with Meet link automatically.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Patient's email address"
+          },
+          "date": {
+            "type": "string",
+            "description": "Appointment date in YYYY-MM-DD format (e.g., 2025-11-07)"
+          },
+          "time": {
+            "type": "string",
+            "description": "Appointment start time in HH:MM format (e.g., 10:00). Must be from available slots."
+          },
+          "note": {
+            "type": "string",
+            "description": "Optional note about the appointment reason or symptoms"
+          }
+        },
+        "required": ["email", "date", "time"]
+      },
+      "endpoint": "POST /api/llm/book-appointment",
+      "example_request": {
+        "email": "patient@example.com",
+        "date": "2025-11-07",
+        "time": "10:00",
+        "note": "Annual checkup"
+      },
+      "example_response": {
+        "success": true,
+        "message": "Appointment booked successfully",
+        "appointment": {
+          "id": "673abc123def456789012345",
+          "email": "patient@example.com",
+          "date": "2025-11-07",
+          "time": "10:00 - 10:30",
+          "meetLink": "https://meet.google.com/xxx-yyyy-zzz",
+          "calendarLink": "https://calendar.google.com/..."
+        }
+      }
+    },
+    {
+      "name": "get_patient_appointments",
+      "description": "Get all upcoming appointments for a patient. Use this when a patient asks about their scheduled appointments.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Patient's email address"
+          }
+        },
+        "required": ["email"]
+      },
+      "endpoint": "POST /api/llm/get-appointments",
+      "example_request": {
+        "email": "patient@example.com"
+      },
+      "example_response": {
+        "success": true,
+        "email": "patient@example.com",
+        "appointments": [
+          {
+            "id": "673abc123...",
+            "date": "2025-11-07",
+            "time": "10:00 - 10:30",
+            "status": "scheduled",
+            "note": "Annual checkup",
+            "meetLink": "https://meet.google.com/xxx-yyyy-zzz"
+          }
+        ],
+        "count": 1,
+        "message": "Found 1 appointment(s)"
+      }
+    },
+    {
+      "name": "cancel_appointment",
+      "description": "Cancel a patient's appointment. Use this when a patient wants to cancel their appointment.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Patient's email address"
+          },
+          "date": {
+            "type": "string",
+            "description": "Appointment date in YYYY-MM-DD format"
+          }
+        },
+        "required": ["email", "date"]
+      },
+      "endpoint": "POST /api/llm/cancel-appointment",
+      "example_request": {
+        "email": "patient@example.com",
+        "date": "2025-11-07"
+      },
+      "example_response": {
+        "success": true,
+        "message": "Appointment cancelled successfully",
+        "cancelled": {
+          "date": "2025-11-07",
+          "time": "10:00 - 10:30"
+        }
+      }
+    },
+    {
+      "name": "reschedule_appointment",
+      "description": "Reschedule an existing appointment to a new date and time. Use this when a patient wants to change their appointment time.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Patient's email address"
+          },
+          "currentDate": {
+            "type": "string",
+            "description": "Current appointment date in YYYY-MM-DD format"
+          },
+          "newDate": {
+            "type": "string",
+            "description": "New appointment date in YYYY-MM-DD format"
+          },
+          "newTime": {
+            "type": "string",
+            "description": "New appointment start time in HH:MM format (e.g., 14:00)"
+          }
+        },
+        "required": ["email", "currentDate", "newDate", "newTime"]
+      },
+      "endpoint": "POST /api/llm/reschedule-appointment",
+      "example_request": {
+        "email": "patient@example.com",
+        "currentDate": "2025-11-07",
+        "newDate": "2025-11-08",
+        "newTime": "14:00"
+      },
+      "example_response": {
+        "success": true,
+        "message": "Appointment rescheduled successfully",
+        "rescheduled": {
+          "from": {
+            "date": "2025-11-07",
+            "time": "10:00 - 10:30"
+          },
+          "to": {
+            "date": "2025-11-08",
+            "time": "14:00 - 14:30",
+            "meetLink": "https://meet.google.com/xxx-yyyy-zzz"
+          }
+        }
+      }
+    }
+  ],
+  "api_base_url": "http://localhost:5000/api/llm",
+  "authentication": "None (add API key for production)",
+  "content_type": "application/json",
+  "notes": [
+    "All endpoints use POST method for consistency",
+    "All responses include 'success' boolean field",
+    "Google Calendar events created automatically",
+    "Google Meet links included in responses",
+    "Email invitations sent automatically",
+    "Times are in 24-hour format (HH:MM)",
+    "Dates are in ISO format (YYYY-MM-DD)"
+  ]
+}
+

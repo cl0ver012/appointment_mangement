@@ -1,0 +1,132 @@
+{
+  "info": {
+    "name": "LLM Appointment API - Simplified",
+    "description": "Simplified API endpoints designed for LLM function calling (OpenAI, Claude, etc.)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000/api/llm",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Check Availability",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"date\": \"2025-11-07\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/check-availability",
+          "host": ["{{base_url}}"],
+          "path": ["check-availability"]
+        },
+        "description": "Check available appointment slots for a specific date.\n\nLLM Use Case: When patient asks 'What times are available tomorrow?'\n\nParameters:\n- date: YYYY-MM-DD format\n\nResponse includes:\n- List of available time slots\n- Count of available slots"
+      },
+      "response": []
+    },
+    {
+      "name": "2. Book Appointment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"patient@example.com\",\n  \"date\": \"2025-11-07\",\n  \"time\": \"10:00\",\n  \"note\": \"Annual checkup\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/book-appointment",
+          "host": ["{{base_url}}"],
+          "path": ["book-appointment"]
+        },
+        "description": "Book an appointment for a patient. Automatically creates Google Calendar event with Meet link.\n\nLLM Use Case: When patient says 'Book me for tomorrow at 10 AM'\n\nRequired Parameters:\n- email: Patient's email\n- date: YYYY-MM-DD format\n- time: HH:MM format (start time)\n\nOptional:\n- note: Reason for appointment\n\nResponse includes:\n- Appointment ID\n- Google Meet link\n- Calendar link"
+      },
+      "response": []
+    },
+    {
+      "name": "3. Get Patient Appointments",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"patient@example.com\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/get-appointments",
+          "host": ["{{base_url}}"],
+          "path": ["get-appointments"]
+        },
+        "description": "Get all upcoming appointments for a patient.\n\nLLM Use Case: When patient asks 'What are my appointments?'\n\nParameters:\n- email: Patient's email\n\nResponse includes:\n- List of appointments\n- Date, time, status\n- Google Meet links"
+      },
+      "response": []
+    },
+    {
+      "name": "4. Cancel Appointment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"patient@example.com\",\n  \"date\": \"2025-11-07\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/cancel-appointment",
+          "host": ["{{base_url}}"],
+          "path": ["cancel-appointment"]
+        },
+        "description": "Cancel a patient's appointment. Automatically deletes Google Calendar event.\n\nLLM Use Case: When patient says 'Cancel my appointment'\n\nParameters:\n- email: Patient's email\n- date: Appointment date (YYYY-MM-DD)\n\nAutomatically:\n- Cancels appointment\n- Deletes calendar event\n- Releases time slot\n- Sends cancellation email"
+      },
+      "response": []
+    },
+    {
+      "name": "5. Reschedule Appointment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"patient@example.com\",\n  \"currentDate\": \"2025-11-07\",\n  \"newDate\": \"2025-11-08\",\n  \"newTime\": \"14:00\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/reschedule-appointment",
+          "host": ["{{base_url}}"],
+          "path": ["reschedule-appointment"]
+        },
+        "description": "Reschedule an existing appointment to a new date and time.\n\nLLM Use Case: When patient says 'Reschedule to tomorrow at 2 PM'\n\nParameters:\n- email: Patient's email\n- currentDate: Current appointment date (YYYY-MM-DD)\n- newDate: New date (YYYY-MM-DD)\n- newTime: New start time (HH:MM)\n\nAutomatically:\n- Updates appointment\n- Updates Google Calendar event\n- Releases old slot\n- Books new slot\n- Sends update email"
+      },
+      "response": []
+    }
+  ]
+}
+

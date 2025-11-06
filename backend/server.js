@@ -24,6 +24,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/api/appointments', require('./routes/appointments'));
 app.use('/api/slots', require('./routes/slots'));
 app.use('/api', require('./routes/google-auth'));
+app.use('/api/llm', require('./routes/llm-api')); // Simplified API for LLM function calling
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
