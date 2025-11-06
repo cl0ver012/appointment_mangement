@@ -84,6 +84,64 @@ const SimpleSlotManager = () => {
     };
   };
 
+  const [showCreateSlot, setShowCreateSlot] = useState(false);
+  const [showBooking, setShowBooking] = useState(false);
+  const [newSlot, setNewSlot] = useState({ date: '', startTime: '', endTime: '' });
+  const [newBooking, setNewBooking] = useState({ email: '', date: '', time: '', note: '' });
+
+  const handleCreateSlot = async (e) => {
+    e.preventDefault();
+    try {
+      await slotsAPI.create(newSlot);
+      toast.success('Slot created');
+      setNewSlot({ date: '', startTime: '', endTime: '' });
+      setShowCreateSlot(false);
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to create slot');
+    }
+  };
+
+  const handleBookAppointment = async (e) => {
+    e.preventDefault();
+    try {
+      await appointmentsAPI.create({
+        userEmail: newBooking.email,
+        appointmentDate: newBooking.date,
+        startTime: newBooking.time,
+        endTime: calculateEndTime(newBooking.time),
+        note: newBooking.note
+      });
+      toast.success('Appointment booked');
+      setNewBooking({ email: '', date: '', time: '', note: '' });
+      setShowBooking(false);
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to book appointment');
+    }
+  };
+
+  const handleCancelAppointment = async (aptId) => {
+    if (window.confirm('Cancel this appointment?')) {
+      try {
+        await appointmentsAPI.update(aptId, { status: 'cancelled' });
+        toast.success('Appointment cancelled');
+        fetchData();
+      } catch (error) {
+        toast.error('Failed to cancel');
+      }
+    }
+  };
+
+  const calculateEndTime = (startTime) => {
+    const [hours, minutes] = startTime.split(':');
+    const endMinutes = parseInt(minutes) + 30;
+    if (endMinutes >= 60) {
+      return `${String(parseInt(hours) + 1).padStart(2, '0')}:${String(endMinutes - 60).padStart(2, '0')}`;
+    }
+    return `${hours}:${String(endMinutes).padStart(2, '0')}`;
+  };
+
   const stats = getStats();
   const weekDays = getNext7Days();
 
@@ -99,6 +157,8 @@ const SimpleSlotManager = () => {
           <p className="last-update">Last updated: {new Date().toLocaleTimeString()}</p>
         </div>
         <div className="header-right">
+          <button onClick={() => setShowCreateSlot(true)} className="action-btn">Create Slot</button>
+          <button onClick={() => setShowBooking(true)} className="action-btn primary">Book Appointment</button>
           <button onClick={fetchData} className="refresh-btn">Refresh</button>
         </div>
       </div>
@@ -183,6 +243,7 @@ const SimpleSlotManager = () => {
                 <th>Patient</th>
                 <th>Note</th>
                 <th>Status</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -201,6 +262,14 @@ const SimpleSlotManager = () => {
                         {apt.status}
                       </span>
                     </td>
+                    <td>
+                      <button 
+                        onClick={() => handleCancelAppointment(apt._id)}
+                        className="table-action-btn"
+                      >
+                        Cancel
+                      </button>
+                    </td>
                   </tr>
                 ))}
             </tbody>
@@ -210,6 +279,116 @@ const SimpleSlotManager = () => {
           )}
         </div>
       </div>
+
+      {/* Create Slot Modal */}
+      {showCreateSlot && (
+        <div className="modal-overlay" onClick={() => setShowCreateSlot(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Create Time Slot</h3>
+              <button onClick={() => setShowCreateSlot(false)} className="close-btn">×</button>
+            </div>
+            <form onSubmit={handleCreateSlot}>
+              <div className="form-field">
+                <label>Date</label>
+                <input
+                  type="date"
+                  value={newSlot.date}
+                  onChange={(e) => setNewSlot({ ...newSlot, date: e.target.value })}
+                  min={getTodayDate()}
+                  required
+                />
+              </div>
+              <div className="form-row">
+                <div className="form-field">
+                  <label>Start Time</label>
+                  <input
+                    type="time"
+                    value={newSlot.startTime}
+                    onChange={(e) => setNewSlot({ ...newSlot, startTime: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-field">
+                  <label>End Time</label>
+                  <input
+                    type="time"
+                    value={newSlot.endTime}
+                    onChange={(e) => setNewSlot({ ...newSlot, endTime: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="modal-actions">
+                <button type="button" onClick={() => setShowCreateSlot(false)} className="cancel-btn">
+                  Cancel
+                </button>
+                <button type="submit" className="submit-btn">Create Slot</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Book Appointment Modal */}
+      {showBooking && (
+        <div className="modal-overlay" onClick={() => setShowBooking(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Book Appointment</h3>
+              <button onClick={() => setShowBooking(false)} className="close-btn">×</button>
+            </div>
+            <form onSubmit={handleBookAppointment}>
+              <div className="form-field">
+                <label>Patient Email</label>
+                <input
+                  type="email"
+                  value={newBooking.email}
+                  onChange={(e) => setNewBooking({ ...newBooking, email: e.target.value })}
+                  placeholder="patient@example.com"
+                  required
+                />
+              </div>
+              <div className="form-row">
+                <div className="form-field">
+                  <label>Date</label>
+                  <input
+                    type="date"
+                    value={newBooking.date}
+                    onChange={(e) => setNewBooking({ ...newBooking, date: e.target.value })}
+                    min={getTodayDate()}
+                    required
+                  />
+                </div>
+                <div className="form-field">
+                  <label>Time (Start)</label>
+                  <input
+                    type="time"
+                    value={newBooking.time}
+                    onChange={(e) => setNewBooking({ ...newBooking, time: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="form-field">
+                <label>Note (Optional)</label>
+                <textarea
+                  value={newBooking.note}
+                  onChange={(e) => setNewBooking({ ...newBooking, note: e.target.value })}
+                  placeholder="Reason for appointment"
+                  rows="3"
+                />
+              </div>
+              <div className="modal-actions">
+                <button type="button" onClick={() => setShowBooking(false)} className="cancel-btn">
+                  Cancel
+                </button>
+                <button type="submit" className="submit-btn">Book Appointment</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
