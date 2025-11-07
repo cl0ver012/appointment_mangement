@@ -1,0 +1,201 @@
+{
+  "info": {
+    "name": "Appointment API - LLM Simple (Enhanced)",
+    "description": "Simplified API endpoints for LLM/Voice AI - Complete calendar management with efficient availability checking",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000/api/llm",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Check Available Slots",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"date\": \"2025-11-07\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/check-availability",
+          "host": ["{{base_url}}"],
+          "path": ["check-availability"]
+        },
+        "description": "Check what time slots are available for a specific date.\n\n**Parameters:**\n- `date` (required): Date in YYYY-MM-DD format\n\n**Example Response:**\n```json\n{\n  \"success\": true,\n  \"date\": \"2025-11-07\",\n  \"availableSlots\": [\n    {\"time\": \"09:00 - 09:30\", \"startTime\": \"09:00\", \"endTime\": \"09:30\"},\n    {\"time\": \"10:00 - 10:30\", \"startTime\": \"10:00\", \"endTime\": \"10:30\"}\n  ],\n  \"count\": 12\n}\n```"
+      },
+      "response": []
+    },
+    {
+      "name": "1A. Check Availability - Date Range (NEW - Efficient!)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"startDate\": \"2025-11-07\",\n  \"endDate\": \"2025-11-15\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/check-availability-range",
+          "host": ["{{base_url}}"],
+          "path": ["check-availability-range"]
+        },
+        "description": "⚡ NEW - Check availability across multiple days in ONE API call!\n\n**Parameters:**\n- `startDate` (required): Start date in YYYY-MM-DD format\n- `endDate` (required): End date in YYYY-MM-DD format\n- Maximum range: 90 days\n\n**Benefits:**\n- Much faster - Get entire week/month in one call\n- Better overview - See all available dates\n- LLM-friendly - Agent can make better decisions\n\n**Example Response:**\n```json\n{\n  \"success\": true,\n  \"startDate\": \"2025-11-07\",\n  \"endDate\": \"2025-11-15\",\n  \"totalAvailableSlots\": 24,\n  \"datesWithAvailability\": 6,\n  \"slotsByDate\": {\n    \"2025-11-07\": [\n      {\"time\": \"09:00 - 09:30\", \"startTime\": \"09:00\", \"endTime\": \"09:30\"},\n      {\"time\": \"10:00 - 10:30\", \"startTime\": \"10:00\", \"endTime\": \"10:30\"}\n    ],\n    \"2025-11-08\": [\n      {\"time\": \"14:00 - 14:30\", \"startTime\": \"14:00\", \"endTime\": \"14:30\"}\n    ]\n  },\n  \"message\": \"Found 24 available slots across 6 dates\"\n}\n```"
+      },
+      "response": []
+    },
+    {
+      "name": "1B. Check Availability - Next N Days (NEW - Convenient!)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"days\": 7\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/check-availability-next-days",
+          "host": ["{{base_url}}"],
+          "path": ["check-availability-next-days"]
+        },
+        "description": "⚡ NEW - Check availability for next N days from today!\n\n**Parameters:**\n- `days` (required): Number of days to check (1-90)\n\n**Benefits:**\n- Super simple - Just specify days\n- Auto date calculation - No date math needed\n- Perfect for \"next week\" queries\n\n**Use Cases:**\n- Next 7 days: {\"days\": 7}\n- Next 2 weeks: {\"days\": 14}\n- Next month: {\"days\": 30}\n\n**Example Response:**\n```json\n{\n  \"success\": true,\n  \"searchPeriod\": \"Next 7 days\",\n  \"startDate\": \"2025-11-07\",\n  \"endDate\": \"2025-11-14\",\n  \"totalAvailableSlots\": 18,\n  \"datesWithAvailability\": 5,\n  \"slotsByDate\": {\n    \"2025-11-07\": [\n      {\"time\": \"14:00 - 14:30\", \"startTime\": \"14:00\", \"endTime\": \"14:30\"}\n    ],\n    \"2025-11-08\": [\n      {\"time\": \"09:00 - 09:30\", \"startTime\": \"09:00\", \"endTime\": \"09:30\"}\n    ]\n  },\n  \"message\": \"Found 18 available slots across 5 dates in the next 7 days\"\n}\n```"
+      },
+      "response": []
+    },
+    {
+      "name": "1C. Get Next Available (NEW - Quick Booking!)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"limit\": 5\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/get-next-available",
+          "host": ["{{base_url}}"],
+          "path": ["get-next-available"]
+        },
+        "description": "⚡ NEW - Get the soonest available slots instantly!\n\n**Parameters:**\n- `fromDate` (optional): Start date (defaults to today)\n- `limit` (optional): Max slots to return (defaults to 10)\n\n**Benefits:**\n- Ultra-fast - Immediate booking options\n- User-friendly - \"What's next available?\"\n- Sorted chronologically - Earliest first\n\n**Use Cases:**\n- Next available: {}\n- Next 3 slots: {\"limit\": 3}\n- From specific date: {\"fromDate\": \"2025-11-10\", \"limit\": 5}\n\n**Example Response:**\n```json\n{\n  \"success\": true,\n  \"nextAvailableSlots\": [\n    {\n      \"date\": \"2025-11-07\",\n      \"time\": \"14:00 - 14:30\",\n      \"startTime\": \"14:00\",\n      \"endTime\": \"14:30\"\n    },\n    {\n      \"date\": \"2025-11-08\",\n      \"time\": \"09:00 - 09:30\",\n      \"startTime\": \"09:00\",\n      \"endTime\": \"09:30\"\n    }\n  ],\n  \"count\": 2,\n  \"message\": \"Found 2 upcoming available slots\"\n}\n```"
+      },
+      "response": []
+    },
+    {
+      "name": "2. Book Appointment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"patient@example.com\",\n  \"date\": \"2025-11-07\",\n  \"time\": \"10:00\",\n  \"note\": \"Annual checkup\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/book-appointment",
+          "host": ["{{base_url}}"],
+          "path": ["book-appointment"]
+        },
+        "description": "Book an appointment. Automatically creates Google Calendar event with Meet link.\n\n**Parameters:**\n- `email` (required): Patient's email address\n- `date` (required): Date in YYYY-MM-DD format\n- `time` (required): Start time in HH:MM format\n- `note` (optional): Reason for appointment\n\n**Example Response:**\n```json\n{\n  \"success\": true,\n  \"message\": \"Appointment booked successfully\",\n  \"appointment\": {\n    \"id\": \"673abc...\",\n    \"email\": \"patient@example.com\",\n    \"date\": \"2025-11-07\",\n    \"time\": \"10:00 - 10:30\",\n    \"meetLink\": \"https://meet.google.com/xxx-yyyy-zzz\",\n    \"calendarLink\": \"https://calendar.google.com/...\"\n  }\n}\n```"
+      },
+      "response": []
+    },
+    {
+      "name": "3. Get Patient Appointments",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"patient@example.com\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/get-appointments",
+          "host": ["{{base_url}}"],
+          "path": ["get-appointments"]
+        },
+        "description": "Get all upcoming appointments for a patient.\n\n**Parameters:**\n- `email` (required): Patient's email address\n\n**Example Response:**\n```json\n{\n  \"success\": true,\n  \"email\": \"patient@example.com\",\n  \"appointments\": [\n    {\n      \"id\": \"673abc...\",\n      \"date\": \"2025-11-07\",\n      \"time\": \"10:00 - 10:30\",\n      \"status\": \"scheduled\",\n      \"note\": \"Annual checkup\",\n      \"meetLink\": \"https://meet.google.com/...\"\n    }\n  ],\n  \"count\": 1\n}\n```"
+      },
+      "response": []
+    },
+    {
+      "name": "4. Cancel Appointment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"patient@example.com\",\n  \"date\": \"2025-11-07\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/cancel-appointment",
+          "host": ["{{base_url}}"],
+          "path": ["cancel-appointment"]
+        },
+        "description": "Cancel a patient's appointment. Deletes Google Calendar event automatically.\n\n**Parameters:**\n- `email` (required): Patient's email address\n- `date` (required): Appointment date in YYYY-MM-DD format\n\n**Example Response:**\n```json\n{\n  \"success\": true,\n  \"message\": \"Appointment cancelled successfully\",\n  \"cancelled\": {\n    \"date\": \"2025-11-07\",\n    \"time\": \"10:00 - 10:30\"\n  }\n}\n```"
+      },
+      "response": []
+    },
+    {
+      "name": "5. Reschedule Appointment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"patient@example.com\",\n  \"currentDate\": \"2025-11-07\",\n  \"newDate\": \"2025-11-08\",\n  \"newTime\": \"14:00\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/reschedule-appointment",
+          "host": ["{{base_url}}"],
+          "path": ["reschedule-appointment"]
+        },
+        "description": "Reschedule an existing appointment to a new date and time.\n\n**Parameters:**\n- `email` (required): Patient's email address\n- `currentDate` (required): Current appointment date (YYYY-MM-DD)\n- `newDate` (required): New date (YYYY-MM-DD)\n- `newTime` (required): New start time (HH:MM)\n\n**Example Response:**\n```json\n{\n  \"success\": true,\n  \"message\": \"Appointment rescheduled successfully\",\n  \"rescheduled\": {\n    \"from\": {\"date\": \"2025-11-07\", \"time\": \"10:00 - 10:30\"},\n    \"to\": {\"date\": \"2025-11-08\", \"time\": \"14:00 - 14:30\", \"meetLink\": \"https://meet.google.com/...\"}\n  }\n}\n```"
+      },
+      "response": []
+    }
+  ]
+}
+

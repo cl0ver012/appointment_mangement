@@ -10,7 +10,7 @@ const googleCalendar = require('../services/googleCalendar');
  */
 
 // ============================================================================
-// 1. Check Available Slots
+// 1. Check Available Slots (Single Day)
 // ============================================================================
 router.post('/check-availability', async (req, res) => {
   try {
@@ -48,6 +48,198 @@ router.post('/check-availability', async (req, res) => {
     });
   } catch (error) {
     console.error('Error checking availability:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// ============================================================================
+// 1A. Check Available Slots for Date Range (NEW - More Efficient!)
+// ============================================================================
+router.post('/check-availability-range', async (req, res) => {
+  try {
+    const { startDate, endDate } = req.body;
+    
+    if (!startDate || !endDate) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Both startDate and endDate are required' 
+      });
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    
+    // Validate date range
+    if (start > end) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'startDate must be before or equal to endDate' 
+      });
+    }
+
+    // Limit range to prevent excessive queries (max 90 days)
+    const daysDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+    if (daysDiff > 90) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Date range cannot exceed 90 days' 
+      });
+    }
+
+    // Query all available slots in the date range
+    const slots = await AvailableSlot.find({
+      date: {
+        $gte: start,
+        $lte: end
+      },
+      isBooked: false
+    }).sort({ date: 1, startTime: 1 });
+
+    // Group slots by date
+    const slotsByDate = {};
+    slots.forEach(slot => {
+      const dateKey = slot.date.toISOString().split('T')[0];
+      if (!slotsByDate[dateKey]) {
+        slotsByDate[dateKey] = [];
+      }
+      slotsByDate[dateKey].push({
+        time: `${slot.startTime} - ${slot.endTime}`,
+        startTime: slot.startTime,
+        endTime: slot.endTime
+      });
+    });
+
+    const totalSlots = slots.length;
+    const datesWithSlots = Object.keys(slotsByDate).length;
+
+    res.json({
+      success: true,
+      startDate: startDate,
+      endDate: endDate,
+      totalAvailableSlots: totalSlots,
+      datesWithAvailability: datesWithSlots,
+      slotsByDate: slotsByDate,
+      message: totalSlots > 0 
+        ? `Found ${totalSlots} available slots across ${datesWithSlots} dates` 
+        : 'No available slots in this date range'
+    });
+  } catch (error) {
+    console.error('Error checking availability range:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// ============================================================================
+// 1B. Check Available Slots for Next N Days (NEW - Most Convenient!)
+// ============================================================================
+router.post('/check-availability-next-days', async (req, res) => {
+  try {
+    const { days } = req.body;
+    
+    if (!days) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Number of days is required' 
+      });
+    }
+
+    const numDays = parseInt(days);
+    if (isNaN(numDays) || numDays < 1 || numDays > 90) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Days must be a number between 1 and 90' 
+      });
+    }
+
+    const startDate = new Date();
+    startDate.setHours(0, 0, 0, 0); // Start of today
+    
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + numDays);
+    endDate.setHours(23, 59, 59, 999); // End of last day
+
+    // Query all available slots in the date range
+    const slots = await AvailableSlot.find({
+      date: {
+        $gte: startDate,
+        $lte: endDate
+      },
+      isBooked: false
+    }).sort({ date: 1, startTime: 1 });
+
+    // Group slots by date
+    const slotsByDate = {};
+    slots.forEach(slot => {
+      const dateKey = slot.date.toISOString().split('T')[0];
+      if (!slotsByDate[dateKey]) {
+        slotsByDate[dateKey] = [];
+      }
+      slotsByDate[dateKey].push({
+        time: `${slot.startTime} - ${slot.endTime}`,
+        startTime: slot.startTime,
+        endTime: slot.endTime
+      });
+    });
+
+    const totalSlots = slots.length;
+    const datesWithSlots = Object.keys(slotsByDate).length;
+
+    res.json({
+      success: true,
+      searchPeriod: `Next ${numDays} days`,
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0],
+      totalAvailableSlots: totalSlots,
+      datesWithAvailability: datesWithSlots,
+      slotsByDate: slotsByDate,
+      message: totalSlots > 0 
+        ? `Found ${totalSlots} available slots across ${datesWithSlots} dates in the next ${numDays} days` 
+        : `No available slots in the next ${numDays} days`
+    });
+  } catch (error) {
+    console.error('Error checking availability for next days:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// ============================================================================
+// 1C. Get Next Available Slot (NEW - Quick Booking)
+// ============================================================================
+router.post('/get-next-available', async (req, res) => {
+  try {
+    const { fromDate, limit } = req.body;
+    
+    // Default to today if no fromDate provided
+    const searchFrom = fromDate ? new Date(fromDate) : new Date();
+    searchFrom.setHours(0, 0, 0, 0);
+    
+    // Default limit to 10 slots
+    const maxSlots = limit ? parseInt(limit) : 10;
+
+    const slots = await AvailableSlot.find({
+      date: { $gte: searchFrom },
+      isBooked: false
+    })
+    .sort({ date: 1, startTime: 1 })
+    .limit(maxSlots);
+
+    const availableSlots = slots.map(slot => ({
+      date: slot.date.toISOString().split('T')[0],
+      time: `${slot.startTime} - ${slot.endTime}`,
+      startTime: slot.startTime,
+      endTime: slot.endTime
+    }));
+
+    res.json({
+      success: true,
+      nextAvailableSlots: availableSlots,
+      count: availableSlots.length,
+      message: availableSlots.length > 0 
+        ? `Found ${availableSlots.length} upcoming available slots` 
+        : 'No available slots found'
+    });
+  } catch (error) {
+    console.error('Error getting next available slots:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });

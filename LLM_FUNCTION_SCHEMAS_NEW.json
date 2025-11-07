@@ -1,0 +1,378 @@
+{
+  "openai_format": {
+    "description": "Function calling schemas for OpenAI GPT models (GPT-4, GPT-3.5-turbo)",
+    "functions": [
+      {
+        "name": "check_availability_next_days",
+        "description": "Check available appointment slots for the next N days from today. Much more efficient than checking individual days. Use this for queries like 'next week', 'next 2 weeks', etc.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "days": {
+              "type": "integer",
+              "description": "Number of days to check from today (1-90). Examples: 7 for next week, 14 for next 2 weeks, 30 for next month",
+              "minimum": 1,
+              "maximum": 90
+            }
+          },
+          "required": ["days"]
+        }
+      },
+      {
+        "name": "check_availability_range",
+        "description": "Check available appointment slots between two specific dates. Use when user specifies exact date range like 'November 10 to November 20'.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "startDate": {
+              "type": "string",
+              "description": "Start date in YYYY-MM-DD format",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "endDate": {
+              "type": "string",
+              "description": "End date in YYYY-MM-DD format",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          },
+          "required": ["startDate", "endDate"]
+        }
+      },
+      {
+        "name": "get_next_available",
+        "description": "Get the soonest available appointment slots. Perfect for 'what's the next available appointment?' queries. Returns slots sorted chronologically.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "fromDate": {
+              "type": "string",
+              "description": "Optional: Start searching from this date (YYYY-MM-DD). Defaults to today if not provided",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "limit": {
+              "type": "integer",
+              "description": "Optional: Maximum number of slots to return. Defaults to 10",
+              "minimum": 1,
+              "maximum": 50
+            }
+          },
+          "required": []
+        }
+      },
+      {
+        "name": "check_availability",
+        "description": "Check available appointment slots for a specific single date. Use only for single-day queries.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "date": {
+              "type": "string",
+              "description": "Date to check in YYYY-MM-DD format",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          },
+          "required": ["date"]
+        }
+      },
+      {
+        "name": "book_appointment",
+        "description": "Book an appointment for a patient. Creates Google Calendar event with Meet link automatically.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "string",
+              "description": "Patient's email address",
+              "format": "email"
+            },
+            "date": {
+              "type": "string",
+              "description": "Appointment date in YYYY-MM-DD format",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "time": {
+              "type": "string",
+              "description": "Start time in HH:MM format (24-hour)",
+              "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+            },
+            "note": {
+              "type": "string",
+              "description": "Optional: Reason for appointment or notes"
+            }
+          },
+          "required": ["email", "date", "time"]
+        }
+      },
+      {
+        "name": "get_appointments",
+        "description": "Retrieve all upcoming appointments for a patient.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "string",
+              "description": "Patient's email address",
+              "format": "email"
+            }
+          },
+          "required": ["email"]
+        }
+      },
+      {
+        "name": "cancel_appointment",
+        "description": "Cancel a patient's appointment. Automatically deletes Google Calendar event.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "string",
+              "description": "Patient's email address",
+              "format": "email"
+            },
+            "date": {
+              "type": "string",
+              "description": "Appointment date to cancel in YYYY-MM-DD format",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            }
+          },
+          "required": ["email", "date"]
+        }
+      },
+      {
+        "name": "reschedule_appointment",
+        "description": "Reschedule an existing appointment to a new date and time.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "string",
+              "description": "Patient's email address",
+              "format": "email"
+            },
+            "currentDate": {
+              "type": "string",
+              "description": "Current appointment date in YYYY-MM-DD format",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "newDate": {
+              "type": "string",
+              "description": "New appointment date in YYYY-MM-DD format",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "newTime": {
+              "type": "string",
+              "description": "New start time in HH:MM format (24-hour)",
+              "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+            }
+          },
+          "required": ["email", "currentDate", "newDate", "newTime"]
+        }
+      }
+    ]
+  },
+  "anthropic_format": {
+    "description": "Function calling schemas for Anthropic Claude models",
+    "tools": [
+      {
+        "name": "check_availability_next_days",
+        "description": "Check available appointment slots for the next N days from today. Much more efficient than checking individual days. Use this for queries like 'next week', 'next 2 weeks', etc.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "days": {
+              "type": "integer",
+              "description": "Number of days to check from today (1-90). Examples: 7 for next week, 14 for next 2 weeks, 30 for next month"
+            }
+          },
+          "required": ["days"]
+        }
+      },
+      {
+        "name": "check_availability_range",
+        "description": "Check available appointment slots between two specific dates. Use when user specifies exact date range.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "startDate": {
+              "type": "string",
+              "description": "Start date in YYYY-MM-DD format"
+            },
+            "endDate": {
+              "type": "string",
+              "description": "End date in YYYY-MM-DD format"
+            }
+          },
+          "required": ["startDate", "endDate"]
+        }
+      },
+      {
+        "name": "get_next_available",
+        "description": "Get the soonest available appointment slots. Perfect for 'what's the next available appointment?' queries.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "fromDate": {
+              "type": "string",
+              "description": "Optional: Start searching from this date (YYYY-MM-DD). Defaults to today"
+            },
+            "limit": {
+              "type": "integer",
+              "description": "Optional: Maximum number of slots to return. Defaults to 10"
+            }
+          },
+          "required": []
+        }
+      }
+    ]
+  },
+  "usage_examples": {
+    "description": "How to use these function schemas in your LLM agent",
+    "openai_example": {
+      "language": "python",
+      "code": "import openai\nimport requests\n\n# Configure OpenAI\nclient = openai.OpenAI(api_key='your-key')\n\n# Define functions\nfunctions = [\n  {\n    \"name\": \"check_availability_next_days\",\n    \"description\": \"Check available appointment slots for the next N days\",\n    \"parameters\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"days\": {\n          \"type\": \"integer\",\n          \"description\": \"Number of days (1-90)\"\n        }\n      },\n      \"required\": [\"days\"]\n    }\n  }\n]\n\n# Call LLM\nresponse = client.chat.completions.create(\n  model=\"gpt-4\",\n  messages=[\n    {\"role\": \"user\", \"content\": \"Show me availability next week\"}\n  ],\n  functions=functions,\n  function_call=\"auto\"\n)\n\n# Execute function\nif response.choices[0].message.function_call:\n  function_args = json.loads(\n    response.choices[0].message.function_call.arguments\n  )\n  \n  # Call your API\n  result = requests.post(\n    'http://localhost:5000/api/llm/check-availability-next-days',\n    json=function_args\n  )\n  \n  print(result.json())"
+    },
+    "common_patterns": {
+      "weekly_check": {
+        "user_query": "What's available next week?",
+        "function_to_call": "check_availability_next_days",
+        "parameters": {"days": 7},
+        "api_endpoint": "/api/llm/check-availability-next-days",
+        "performance": "1 API call instead of 7"
+      },
+      "quick_booking": {
+        "user_query": "When's the next available slot?",
+        "function_to_call": "get_next_available",
+        "parameters": {"limit": 5},
+        "api_endpoint": "/api/llm/get-next-available",
+        "performance": "Instant results"
+      },
+      "specific_range": {
+        "user_query": "Show me Nov 10 to Nov 20",
+        "function_to_call": "check_availability_range",
+        "parameters": {
+          "startDate": "2025-11-10",
+          "endDate": "2025-11-20"
+        },
+        "api_endpoint": "/api/llm/check-availability-range",
+        "performance": "1 API call for entire range"
+      }
+    }
+  },
+  "api_endpoints": {
+    "base_url_local": "http://localhost:5000/api/llm",
+    "base_url_production": "https://your-backend.railway.app/api/llm",
+    "endpoints": {
+      "check_availability_next_days": {
+        "method": "POST",
+        "path": "/check-availability-next-days",
+        "body_example": {"days": 7}
+      },
+      "check_availability_range": {
+        "method": "POST",
+        "path": "/check-availability-range",
+        "body_example": {
+          "startDate": "2025-11-07",
+          "endDate": "2025-11-15"
+        }
+      },
+      "get_next_available": {
+        "method": "POST",
+        "path": "/get-next-available",
+        "body_example": {"limit": 5}
+      },
+      "check_availability": {
+        "method": "POST",
+        "path": "/check-availability",
+        "body_example": {"date": "2025-11-07"}
+      },
+      "book_appointment": {
+        "method": "POST",
+        "path": "/book-appointment",
+        "body_example": {
+          "email": "patient@example.com",
+          "date": "2025-11-07",
+          "time": "10:00",
+          "note": "Annual checkup"
+        }
+      },
+      "get_appointments": {
+        "method": "POST",
+        "path": "/get-appointments",
+        "body_example": {"email": "patient@example.com"}
+      },
+      "cancel_appointment": {
+        "method": "POST",
+        "path": "/cancel-appointment",
+        "body_example": {
+          "email": "patient@example.com",
+          "date": "2025-11-07"
+        }
+      },
+      "reschedule_appointment": {
+        "method": "POST",
+        "path": "/reschedule-appointment",
+        "body_example": {
+          "email": "patient@example.com",
+          "currentDate": "2025-11-07",
+          "newDate": "2025-11-08",
+          "newTime": "14:00"
+        }
+      }
+    }
+  },
+  "decision_tree": {
+    "description": "How to choose which availability function to call",
+    "rules": [
+      {
+        "if": "User asks for 'next week' or 'this week'",
+        "then": "Use check_availability_next_days with days=7",
+        "reason": "Most efficient for week queries"
+      },
+      {
+        "if": "User asks for 'next 2 weeks' or 'next month'",
+        "then": "Use check_availability_next_days with days=14 or days=30",
+        "reason": "Simple and efficient"
+      },
+      {
+        "if": "User specifies exact date range like 'Nov 10 to Nov 20'",
+        "then": "Use check_availability_range with specific dates",
+        "reason": "Precise date range handling"
+      },
+      {
+        "if": "User asks 'next available' or 'soonest'",
+        "then": "Use get_next_available with limit=5",
+        "reason": "Optimized for quick results"
+      },
+      {
+        "if": "User asks for specific single date like 'tomorrow'",
+        "then": "Use check_availability with specific date",
+        "reason": "Simple single-day query"
+      }
+    ]
+  },
+  "performance_metrics": {
+    "old_approach_7_days": {
+      "api_calls": 7,
+      "estimated_time_ms": 2000,
+      "description": "Checking each day individually"
+    },
+    "new_approach_7_days": {
+      "api_calls": 1,
+      "estimated_time_ms": 300,
+      "description": "Using check_availability_next_days",
+      "improvement": "85% reduction in API calls, 85% faster"
+    },
+    "old_approach_30_days": {
+      "api_calls": 30,
+      "estimated_time_ms": 10000,
+      "description": "Checking each day individually"
+    },
+    "new_approach_30_days": {
+      "api_calls": 1,
+      "estimated_time_ms": 400,
+      "description": "Using check_availability_next_days",
+      "improvement": "96% reduction in API calls, 96% faster"
+    }
+  }
+}
+
