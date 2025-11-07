@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "create-slots": "node create-realistic-slots.js",
+    "add-demo": "node add-demo-data.js"
   },
   "keywords": [
     "appointment",
