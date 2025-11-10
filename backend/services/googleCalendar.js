@@ -67,6 +67,17 @@ class GoogleCalendarService {
       const endDateTime = new Date(appointmentDate);
       endDateTime.setHours(parseInt(endHour), parseInt(endMinute), 0, 0);
 
+      // Prepare attendees list
+      const attendees = [
+        { email: appointment.userEmail, responseStatus: 'needsAction' } // Patient
+      ];
+      
+      // Add doctor email if configured
+      const doctorEmail = process.env.DOCTOR_EMAIL;
+      if (doctorEmail) {
+        attendees.push({ email: doctorEmail, responseStatus: 'accepted', organizer: true }); // Doctor
+      }
+
       // Create event object
       const event = {
         summary: `Doctor Appointment - ${appointment.userEmail}`,
@@ -79,9 +90,7 @@ class GoogleCalendarService {
           dateTime: endDateTime.toISOString(),
           timeZone: process.env.TIMEZONE || 'America/New_York',
         },
-        attendees: [
-          { email: appointment.userEmail }
-        ],
+        attendees: attendees,
         conferenceData: {
           createRequest: {
             requestId: `appointment-${appointment._id}`,
@@ -94,7 +103,10 @@ class GoogleCalendarService {
             { method: 'email', minutes: 24 * 60 }, // 1 day before
             { method: 'popup', minutes: 30 }       // 30 minutes before
           ]
-        }
+        },
+        guestsCanModify: false,
+        guestsCanInviteOthers: false,
+        guestsCanSeeOtherGuests: true
       };
 
       // Create the event
@@ -138,6 +150,17 @@ class GoogleCalendarService {
       const endDateTime = new Date(appointmentDate);
       endDateTime.setHours(parseInt(endHour), parseInt(endMinute), 0, 0);
 
+      // Prepare attendees list
+      const attendees = [
+        { email: appointment.userEmail, responseStatus: 'needsAction' } // Patient
+      ];
+      
+      // Add doctor email if configured
+      const doctorEmail = process.env.DOCTOR_EMAIL;
+      if (doctorEmail) {
+        attendees.push({ email: doctorEmail, responseStatus: 'accepted', organizer: true }); // Doctor
+      }
+
       const event = {
         summary: `Doctor Appointment - ${appointment.userEmail}`,
         description: appointment.note || 'Healthcare appointment',
@@ -149,9 +172,10 @@ class GoogleCalendarService {
           dateTime: endDateTime.toISOString(),
           timeZone: process.env.TIMEZONE || 'America/New_York',
         },
-        attendees: [
-          { email: appointment.userEmail }
-        ]
+        attendees: attendees,
+        guestsCanModify: false,
+        guestsCanInviteOthers: false,
+        guestsCanSeeOtherGuests: true
       };
 
       const response = await this.calendar.events.update({
