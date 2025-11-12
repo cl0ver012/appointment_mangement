@@ -1,0 +1,179 @@
+╔══════════════════════════════════════════════════════════════════════════╗
+║              🧪 TEST RESULTS - ISSUE IDENTIFIED 🧪                       ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+✅ SERVER RUNNING LOCALLY: http://localhost:5000
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔍 WHAT I TESTED:
+
+Test 1: Health Check
+  → curl http://localhost:5000/api/health
+  ✅ Result: Server running
+
+Test 2: Get Available Slots  
+  → curl POST /api/llm/get-next-available
+  ✅ Result: Returns slots
+
+Test 3: Book Appointment
+  → curl POST /api/llm/book-appointment
+  ❌ Result: "meetLink": null, "calendarLink": null
+
+Test 4: Check Server Logs
+  → tail /tmp/server-logs.txt
+  ❌ Found: "Error creating calendar event: invalid_grant"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 DIAGNOSIS:
+
+Server Logs Show:
+  ✅ Google Calendar integration initialized
+  ✅ Server is running on port 5000
+  ✅ MongoDB Connected
+  ❌ Error creating calendar event: invalid_grant  ← THE PROBLEM!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ ROOT CAUSE:
+
+Your GOOGLE_REFRESH_TOKEN has EXPIRED!
+
+What this means:
+  • Credentials exist in .env ✅
+  • Service initializes ✅
+  • But token is no longer valid ❌
+  • Can't create calendar events ❌
+  • No emails sent ❌
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ SOLUTION: Get New Refresh Token (2 Minutes)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔑 STEP-BY-STEP FIX:
+
+STEP 1: Open Authorization URL
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Copy this ENTIRE URL and paste in your browser:                        │
+│                                                                          │
+│ https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&     │
+│ scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcalendar%20https%3A   │
+│ %2F%2Fwww.googleapis.com%2Fauth%2Fcalendar.events&prompt=consent&     │
+│ response_type=code&client_id=874392875331-qq0rgpl6j7dnm49th7tr7tgag   │
+│ qgh8smt.apps.googleusercontent.com&redirect_uri=http%3A%2F%2Flocalh   │
+│ ost%3A5000%2Fapi%2Fauth%2Fgoogle%2Fcallback                           │
+│                                                                          │
+│ (It's one long URL - copy everything!)                                  │
+└─────────────────────────────────────────────────────────────────────────┘
+
+STEP 2: Sign In with Doctor's Google Account
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 1. Sign in with the email that should receive appointment notifications │
+│ 2. Click "Allow" when asked for Calendar permissions                    │
+│ 3. You'll be redirected to: http://localhost:5000/api/auth/google/...  │
+└─────────────────────────────────────────────────────────────────────────┘
+
+STEP 3: Copy New Refresh Token
+┌─────────────────────────────────────────────────────────────────────────┐
+│ You'll see a success page showing:                                      │
+│                                                                          │
+│   ✅ Authorization Successful!                                         │
+│   Add these to your .env file:                                          │
+│                                                                          │
+│   GOOGLE_REFRESH_TOKEN=1//0abc123xyz789...                             │
+│                                                                          │
+│ COPY that entire token (it's very long!)                                │
+└─────────────────────────────────────────────────────────────────────────┘
+
+STEP 4: Update .env File
+┌─────────────────────────────────────────────────────────────────────────┐
+│ cd /home/ilya/Desktop/appointment_mangement/backend                     │
+│ nano .env                                                                │
+│                                                                          │
+│ Replace the old GOOGLE_REFRESH_TOKEN line with new token:              │
+│ GOOGLE_REFRESH_TOKEN=1//0abc123xyz789...  ← New token here             │
+│                                                                          │
+│ Also add (if not present):                                              │
+│ DOCTOR_EMAIL=doctor@example.com  ← Your doctor's email                 │
+│                                                                          │
+│ Save and exit (Ctrl+X, Y, Enter)                                        │
+└─────────────────────────────────────────────────────────────────────────┘
+
+STEP 5: Restart & Test
+┌─────────────────────────────────────────────────────────────────────────┐
+│ # Restart server                                                         │
+│ pkill -f "node.*server.js"                                              │
+│ cd /home/ilya/Desktop/appointment_mangement/backend                     │
+│ npm start                                                                │
+│                                                                          │
+│ # In new terminal, test booking:                                        │
+│ curl -X POST http://localhost:5000/api/llm/book-appointment \          │
+│   -H "Content-Type: application/json" \                                 │
+│   -d '{                                                                  │
+│     "email": "test@example.com",                                        │
+│     "date": "2025-11-13",                                               │
+│     "time": "09:00",                                                    │
+│     "note": "Testing new token"                                         │
+│   }' | python3 -m json.tool                                             │
+│                                                                          │
+│ ✅ Should now see:                                                      │
+│    "meetLink": "https://meet.google.com/..."  ← Not null!              │
+│    "calendarLink": "https://calendar.google.com/..."  ← Not null!      │
+└─────────────────────────────────────────────────────────────────────────┘
+
+STEP 6: Add to Railway
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Once local test works:                                                   │
+│                                                                          │
+│ 1. Go to: https://railway.app                                           │
+│ 2. Select: Your Project → Service → Variables                          │
+│ 3. Update these variables:                                              │
+│                                                                          │
+│    GOOGLE_REFRESH_TOKEN = [paste new token]                            │
+│    DOCTOR_EMAIL = doctor@example.com                                    │
+│                                                                          │
+│ 4. Save → Railway redeploys                                             │
+│ 5. Test production → Should work!                                       │
+└─────────────────────────────────────────────────────────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️  IMPORTANT:
+
+Use the DOCTOR'S Google account when authorizing!
+  • This account will receive all appointment notifications
+  • Calendar events will be created in this account
+  • This should be your primary clinic/doctor email
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ AFTER THIS FIX:
+
+Every appointment booking will:
+  ✅ Create Google Calendar event
+  ✅ Send email to patient
+  ✅ Send email to doctor
+  ✅ Generate Google Meet link
+  ✅ Update both calendars
+  ✅ Set up reminders
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 CURRENT STATUS:
+
+  ✅ Server running locally
+  ✅ Credentials exist
+  ❌ Refresh token expired
+  ⏳ Waiting for new token
+
+TIME TO FIX: 2 minutes!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📚 DETAILED GUIDE: REFRESH_TOKEN_EXPIRED_FIX.md
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
